@@ -10,10 +10,10 @@ function greeting($keyboard){
 
 function handler_0($text, &$session){
   $session[3] = $session[4];
-  $session[4] = 1;// сброс сессии
+  $session[4] = 10;// сброс сессии
   return [
       'text' => 'начнем с начала',
-      'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(1)]
+      'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(10)]
   ];
 }
 
@@ -40,10 +40,10 @@ function handler_1($text, &$session){
         ];
       }
       else {
-        $session[4] = 1;
+        $session[4] = 10;
         return [
             'text' => 'К сожалению, свободных экспертов нет. Пожалуйста попробуйте позже либо мы с вами свяжемся.',
-            'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(1)]
+            'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(10)]
         ];
       }
     case 'категории курсов':
@@ -98,12 +98,12 @@ function handler_1($text, &$session){
         global $id;
         del_observer($id);
         del_expert($id);
-        $session[4] = 1;
+        $session[4] = 10;
         $session[2] = 0; // стать юзером
         $session[5] = 0; // перестать быть "общительным" :-(
         return [
             'text' => 'вы снова обычный юзер (',
-            'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(1)]
+            'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(10)]
         ];
       }; break;
 
@@ -116,11 +116,11 @@ function handler_11($text, &$session){
   switch ($text) {
     case 'НАЗАД':
       $session[3] = $session[4];
-      $session[4] = 1;
+      $session[4] = 10;
       //$session[4] = $previous;
       return [
           'text' => 'Главное меню',
-          'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(1)]
+          'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(10)]
       ];
     case 'как проходят уроки':
       $session[3] = $session[4];
@@ -152,14 +152,14 @@ function handler_12($text, &$session){
 
     case 'завершить общение':
       $session[3] = $session[4];
-      $session[4] = 1;
+      $session[4] = 10;
       $session[5] = 0; // перестать быть "общительным" :-(
       global $chat_id;
       chat_archive($chat_id);
       // TODO пользователь покинул чат
       return [
           'text' => 'Главное меню',
-          'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(1)]
+          'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(10)]
       ];
 
   }
@@ -170,11 +170,11 @@ function handler_13($text, &$session){
   switch ($text) {
     case 'НАЗАД':
       $session[3] = $session[4];
-      $session[4] = 1;
+      $session[4] = 10;
 //      $session[4] = $previous;
       return [
           'text' => 'Главное меню',
-          'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(1)]
+          'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(10)]
       ];
     case 'взрослые':
       $session[3] = $session[4];
@@ -206,11 +206,11 @@ function handler_14($text, &$session){
   switch ($text) {
     case 'НАЗАД':
       $session[3] = $session[4];
-      $session[4] = 1;
+      $session[4] = 10;
 //      $session[4] = $previous;
       return [
           'text' => 'Главное меню',
-          'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(1)]
+          'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(10)]
       ];
     case 'низкий уровень':
       $session[3] = $session[4];

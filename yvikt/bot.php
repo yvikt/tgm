@@ -1,5 +1,5 @@
 <?php
-include 'secrets.php';
+include '../secrets.php';
 include "nav.php";
 include "messenger.php";
 include "session.php";
