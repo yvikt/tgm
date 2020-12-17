@@ -1,0 +1,11 @@
+.*
+!.gitignore
+secrets.php
+*.log
+img/
+yvikt/admin
+yvikt/chat
+yvikt/chat_archive
+yvikt/expert
+yvikt/observer
+yvikt/user
