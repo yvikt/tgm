@@ -1,5 +1,7 @@
 <?php
-
+// клавиатура передается один раз - переходы внутри одного уровня
+// не требуют повторной передачи разметки.
+// поэтому в секциях /// KEYBOARD 11, 12, 13 \\\ ответы состоят только из текста
 
 function greeting($keyboard){
   return [
@@ -8,26 +10,34 @@ function greeting($keyboard){
   ];
 }
 
-function handler_0($text, &$session){
-  $session[3] = $session[4];
-  $session[4] = 10;// сброс сессии
-  return [
-      'text' => 'начнем с начала',
-      'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(10)]
-  ];
-}
-
-function handler_1($text, &$session){
-  $previous = $session[3];
+function command_handler($text, &$session){
+  global $commands;
+  // $previous = $session[3];
   $session[3] = $session[4];
   switch ($text) {
-    case 'про обучение':
+    case $commands[1]: // 'start'
+    case $commands[2]: // '/'
+      $session[4] = 10;// сброс сессии
+      return [
+          'text' => 'начнем с начала',
+          'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(10)]
+      ];
+
+    case $commands[10]:
+      $session[4] = 10;
+      return [
+          'text' => 'Главное меню',
+          'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(10)]
+      ];
+
+      /// KEYBOARD 10 \\\
+    case $commands[11]:
       $session[4] = 11;
       return [
           'text' => 'Наше обучение самое лучшее. Выберите интересующий вас вопрос',
           'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(11)]
       ];
-    case 'задать вопрос':
+    case $commands[12]:
       if(any_expert()) { // есть ли подключенные эксперты?
         // TODO сделать проверку свободен ли эксперт
         $session[4] = 12;
@@ -46,54 +56,91 @@ function handler_1($text, &$session){
             'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(10)]
         ];
       }
-    case 'категории курсов':
+    case $commands[13]:
       $session[4] = 13;
       return [
           'text' => 'выберите категории согласно возрасту',
           'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(13)]
       ];
-    case 'пройти тестирование':
+    case $commands[14]:
       $session[4] = 14;
       return [
           'text' => 'выберите уровень по которому желаете пройти тестирование',
           'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(14)]
       ];
 
-//////////////////////////////// SERVICE \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-    case 'ee': // expert
-      $session[3] = $session[4];
+      /// KEYBOARD 11 \\\
+    case $commands[111]:
+      $session[4] = 11;
+      return [ 'text' => 'уроки проходят в группах до 6 человек 2 раза в неделю' ];
+    case $commands[112]:
+      $session[4] = 11;
+      return [ 'text' => 'стоимость индивидуальных занятий. стоимость групповых занятий' ];
+    case $commands[113]:
+      $session[4] = 11;
+      return [ 'text' => 'здесь описание преимуществ онлай обучения в целом и возмодности нашей платформы' ];
+
+      /// KEYBOARD 12 \\\
+    case $commands[121]:
+      $session[4] = 10;
+      $session[5] = 0; // перестать быть "общительным" :-(
+      global $chat_id;
+      chat_archive($chat_id);
+      // TODO пользователь покинул чат
+      return [
+          'text' => 'Главное меню',
+          'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(10)]
+      ];
+
+    /// KEYBOARD 13 \\\
+    case $commands[131]:
+      $session[4] = 13;
+      return [ 'text' => 'здесь перечисляются курсы для взрослых' ];
+    case $commands[132]:
+      $session[4] = 13;
+      return [ 'text' => 'здесь перечисляются курсы для подростков' ];
+    case $commands[133]:
+      $session[4] = 13;
+      return [ 'text' => 'здесь перечисляются курсы для детей' ];
+
+    /// KEYBOARD 14 \\\
+    case $commands[141]:
+      $session[4] = 14;
+      return [ 'text' => 'здесь будет тест для низкого уровня' ];
+    case $commands[142]:
+      $session[4] = 14;
+      return [ 'text' => 'здесь будет тест для высокого уровня' ];
+
+      /// SERVICE \\\
+    case $commands[3]: // expert
       if (is_user($session)){
 //        if ($previous == 12) { // нужно два раза ввести слово 'ee'
 //        if ($session[4] == 12 && $previous == 1) { // 'ee' срабатывает при переходе с 1 на 12
-          $session[2] = 1; // стать экспертом
-          $session[5] = 1; // быть "общительным" :-)
-          global $id;
-          be_expert($id);
-          return [
-              'text' => 'вы стали ЭКСПЕРТОМ. теперь сообщения от пользователей будут перенапрвляться вам для того чтобы вы ответили на их вопросы',
-              'reply_markup' => ['resize_keyboard' => true, 'keyboard' => [[['text' => 'qq']]]]
+        $session[2] = 1; // стать экспертом
+        $session[5] = 1; // быть "общительным" :-)
+        global $id;
+        be_expert($id);
+        return [
+            'text' => 'вы стали ЭКСПЕРТОМ. теперь сообщения от пользователей будут перенапрвляться вам для того чтобы вы ответили на их вопросы',
+            'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(5)]
 //              'reply_markup' => false
-          ];
+        ];
 //        }
       }; break;
 
-    case 'oo': // observer
-      $session[3] = $session[4];
+    case $commands[4]: // observer
       if (is_user($session)){
-//        if ($previous == 12) { // нужно два раза ввести слово 'ee'
-//        if ($session[4] == 12 && $previous == 1) { // 'ee' срабатывает при переходе с 1 на 12
-          $session[2] = 2; // стать наблюдателем
-          global $id;
-          be_observer($id);
-          return [
-              'text' => 'вы стали НАБЛЮДАТЕЛЕМ. теперь вы будуте получать уведомления обо всех действиях всех пользователей',
-              'reply_markup' => ['resize_keyboard' => true, 'keyboard' => [[['text' => 'qq']]]]
+        $session[2] = 2; // стать наблюдателем
+        global $id;
+        be_observer($id);
+        return [
+            'text' => 'вы стали НАБЛЮДАТЕЛЕМ. теперь вы будуте получать уведомления обо всех действиях всех пользователей',
+            'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(5)]
 //              'reply_markup' => false
-          ];
-//        }
+        ];
       }; break;
 
-    case 'qq':
+    case $commands[5]:
       if (is_expert($session) || is_observer($session)) {
         global $id;
         del_observer($id);
@@ -107,170 +154,31 @@ function handler_1($text, &$session){
         ];
       }; break;
 
-    //////////////////////////////// SERVICE \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
   }
 }
 
-function handler_11($text, &$session){
-  // $previous = $session[3]; // для многоуровнего меню
-  switch ($text) {
-    case 'НАЗАД':
-      $session[3] = $session[4];
-      $session[4] = 10;
-      //$session[4] = $previous;
-      return [
-          'text' => 'Главное меню',
-          'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(10)]
-      ];
-    case 'как проходят уроки':
-      $session[3] = $session[4];
-      $session[4] = 11;
-      return [
-          'text' => 'уроки проходят в группах до 6 человек 2 раза в неделю',
-          'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(11)]
-      ];
-    case 'стоимость':
-      $session[3] = $session[4];
-      $session[4] = 11;
-      return [
-          'text' => 'стоимость индивидуальных занятий. стоимость групповых занятий',
-          'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(11)]
-      ];
-    case 'преимущества':
-      $session[3] = $session[4];
-      $session[4] = 11;
-      return [
-          'text' => 'здесь описание преимуществ онлай обучения в целом и возмодности нашей платформы',
-          'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(11)]
-      ];
-  }
-}
-
-function handler_12($text, &$session){
-//  $previous = $session[3];
-  switch ($text) {
-
-    case 'завершить общение':
-      $session[3] = $session[4];
-      $session[4] = 10;
-      $session[5] = 0; // перестать быть "общительным" :-(
-      global $chat_id;
-      chat_archive($chat_id);
-      // TODO пользователь покинул чат
-      return [
-          'text' => 'Главное меню',
-          'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(10)]
-      ];
-
-  }
-}
-
-function handler_13($text, &$session){
-//  $previous = $session[3];
-  switch ($text) {
-    case 'НАЗАД':
-      $session[3] = $session[4];
-      $session[4] = 10;
-//      $session[4] = $previous;
-      return [
-          'text' => 'Главное меню',
-          'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(10)]
-      ];
-    case 'взрослые':
-      $session[3] = $session[4];
-      $session[4] = 13;
-      return [
-          'text' => 'здесь перечисляются курсы для взрослых',
-          'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(13)]
-      ];
-    case 'подростки':
-      $session[3] = $session[4];
-      $session[4] = 13;
-      return [
-          'text' => 'здесь перечисляются курсы для подростков',
-          'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(13)]
-      ];
-    case 'дети':
-      $session[3] = $session[4];
-      $session[4] = 13;
-      return [
-          'text' => 'здесь перечисляются курсы для детей',
-          'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(13)]
-      ];
-  }
-}
-
-function handler_14($text, &$session){
-//  $previous = $session[3];
-  $session[3] = $session[4];
-  switch ($text) {
-    case 'НАЗАД':
-      $session[3] = $session[4];
-      $session[4] = 10;
-//      $session[4] = $previous;
-      return [
-          'text' => 'Главное меню',
-          'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(10)]
-      ];
-    case 'низкий уровень':
-      $session[3] = $session[4];
-      $session[4] = 14;
-      return [
-          'text' => 'здесь будет тест для низкого уровня',
-          'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(14)]
-      ];
-    case 'высокий уровень':
-      $session[3] = $session[4];
-      $session[4] = 14;
-      return [
-          'text' => 'здесь будет тест для высокого уровня',
-          'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(14)]
-      ];
-  }
-}
-
-function handler_default($text, &$session){
+function default_handler($text, &$session){
   if($session[5] == 0) {
     switch ($text) {
       case 'кто я':
         if (is_user($session)) {
-          return [
-              'text' => 'Вы пользователь бота',
-              'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard($session[4])]
-          ];
+          return [ 'text' => 'Вы пользователь бота' ];
         }
         if (is_expert($session)) {
-          return [
-              'text' => 'Вы эксперт',
-              'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard($session[4])]
-          ];
+          return [ 'text' => 'Вы эксперт' ];
         }
         if (is_observer($session)) {
-          return [
-              'text' => 'Вы наблюдатель',
-              'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard($session[4])]
-          ];
+          return [ 'text' => 'Вы наблюдатель' ];
         };
-        break;
-
       case 'ты кто':
       case 'кто ты':
       case 'кто вы':
-        return [
-            'text' => 'я бот BOT_NAME',
-            'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard($session[4])]
-        ];
+        return [ 'text' => 'я бот BOT_NAME' ];
       default:
-        return ['text' => 'я вас не понял',
-            'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard($session[4])]];
+        return [ 'text' => 'я вас не понял' ];
     }
   }
-//  else{
-//    return ['text' => '',
-//        'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard($session[4])]];
-//  }
 }
-
 
 
 function is_user($session){
