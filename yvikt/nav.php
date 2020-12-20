@@ -10,10 +10,13 @@ $commands = [
   // команды текстовые
     1 => '/',
     2 => '/start',
-    3 => 'e',
-    4 => 'o',
+    3 => 'ee',
+    4 => 'oo',
   // команды кнопочные
-    5 => 'quit',
+    5   => 'quit',
+    6   => 'прекратить',
+    7   => 'оставить свой контакт',
+    8   => 'отказаться',
     10  => 'НАЗАД',
     11  => 'про обучение', // читай "первая клавиша первого уровня 1(1)"
     111 => 'как проходят уроки', // читай "первая клавиша вышестоящего 1(1(1)) уровня"
@@ -35,7 +38,12 @@ function keyboard($number){
   switch ($number) {
     case 5:
       return [[['text' => $commands[5] ]]];
-    case 10:
+    case 6:
+      return [[['text' => $commands[6] ]]];
+    case 7:
+      return [[ ['text' => $commands[7], 'request_contact' => true, ],
+                ['text' => $commands[8] ] ]];
+    case 10: // главная
       return [
 
           [
@@ -84,7 +92,7 @@ function keyboard($number){
           ],
           [
               ['text' => $commands[141]],
-              ['text' => $commands[141]]
+              ['text' => $commands[142]]
           ]
       ];
   }
