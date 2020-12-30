@@ -72,13 +72,13 @@ function command_handler_0($text, $chat_id, &$session){
 
       /// KEYBOARD 11 \\\
     case $commands[111]:
-      $session[4] = 11;
+      $session[4] = 111;
       return [ 'text' => 'уроки проходят в группах до 6 человек 2 раза в неделю' ];
     case $commands[112]:
-      $session[4] = 11;
+      $session[4] = 112;
       return [ 'text' => 'стоимость индивидуальных занятий. стоимость групповых занятий' ];
     case $commands[113]:
-      $session[4] = 11;
+      $session[4] = 113;
       return [ 'text' => 'здесь описание преимуществ онлай обучения в целом и возмодности нашей платформы' ];
 /*
       /// KEYBOARD 12 \\\
@@ -95,30 +95,32 @@ function command_handler_0($text, $chat_id, &$session){
 */
     /// KEYBOARD 13 \\\
     case $commands[131]:
-      $session[4] = 13;
+      $session[4] = 131;
       return [ 'text' => 'здесь перечисляются курсы для взрослых' ];
     case $commands[132]:
-      $session[4] = 13;
+      $session[4] = 132;
       return [ 'text' => 'здесь перечисляются курсы для подростков' ];
     case $commands[133]:
-      $session[4] = 13;
+      $session[4] = 133;
       return [ 'text' => 'здесь перечисляются курсы для детей' ];
 
     /// KEYBOARD 14 \\\  QUIZ
     case $commands[141]:
-      $session[4] = 6; // ???
+      $session[4] = 141; // ???
       $session[5] = 2; // quiz-1
 
       return [ 'text' => "Давайте начнем тест вашего уровня языка. Вам нужно будет ответить на 40 вопросов. На каждый ответ отводится до 30 секунд. Кнопка $commands[6] прерывает тест. Вы можете пройти тест в другой раз.",
           'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(6)]
       ];
     case $commands[142]:
-      $session[4] = 7; // ???
-      $session[5] = 3; // quiz-2
+      $session[4] = 142; // ???
+      $session[5] = 2; // quiz-2 ???
       return [ 'text' => "Давайте начнем тест вашего уровня языка. Вам нужно будет ответить на 40 вопросов. На каждый ответ отводится до 30 секунд. Кнопка $commands[6] прерывает тест. Вы можете пройти тест в другой раз.",
       'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(6)]
       ];
 
+
+      /*
     case $commands[6]:
       $session[4] = 6;
       $session[5] = 0; // конец режима quiz - снова обычный юзер
@@ -128,6 +130,7 @@ function command_handler_0($text, $chat_id, &$session){
              // 'one_time_keyboard' => true,
               'keyboard' => keyboard(7)]
       ];
+      */
       /*
     case $commands[7]:
       $session[4] = 7;
@@ -170,6 +173,11 @@ function command_handler_0($text, $chat_id, &$session){
       }; break;
 
 
+      // Удалить (временная заплатка)
+//    default:
+//      if($session[5] ==0 ) {
+//        return ['text' => 'я вас не понял'];
+//      }
 
   }
 }

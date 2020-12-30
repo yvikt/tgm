@@ -8,7 +8,7 @@
 # [4] current : current(last) session (keyboard template etc)
 # [5] state : 0/1 - is chatting now, 2,3 - quiz
 # [6] text : received message
-# [7] id : user id to communicate
+# [7] id : user id to communicate (упразднено - все работает н файлах)
 
 function seekLastLine($f) {
   $pos = -2;
@@ -38,11 +38,10 @@ function session_init($receive_data){
   $prev_keyboard = 0;
   $state = 0;
   $text = $receive_data['message']['text'];
-  $id_2 = 0;
   $session_file = $user_dir . $chat_id; // сессионный файл именуем chat_id
   $f = fopen($session_file, 'a+');
   fputcsv($f, [$first_name, $last_name, $username, $id]);
-  fputcsv($f, [$date, $id, $role, $prev_keyboard, $keyboard, $state, $text, $id_2]); // в сессиях сохраняем $id юзера
+  fputcsv($f, [$date, $id, $role, $prev_keyboard, $keyboard, $state, $text]); // в сессиях сохраняем $id юзера
   fclose($f);
 }
 

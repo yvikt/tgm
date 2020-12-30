@@ -50,6 +50,9 @@ switch ($path) {
   case '/bot_out': // исходящий запрос БОТ -> ТЕЛЕГРАМ (то что было отправлено ботом)
     bot_out();
     break;
+  case '/api_answer': // API ТЕЛЕГРАМ -> BOT (ответ API боту)
+    api_answer();
+    break;
   default:
     echo 'Not found';
 }

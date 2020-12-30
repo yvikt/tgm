@@ -6,7 +6,7 @@
 
 function user_bot(&$incoming_data, &$session){
   global $commands;
-  $text = $incoming_data['message']['text'];
+  $text = $incoming_data['message']['text'] ?? 'no_text';
   $chat_id = $incoming_data['message']['chat']['id'];
 
   switch ($text) {
@@ -26,4 +26,5 @@ function user_bot(&$incoming_data, &$session){
         $outgoing_data['chat_id'] = $chat_id;
         return $outgoing_data;
     }
+
 }

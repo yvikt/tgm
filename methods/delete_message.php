@@ -11,10 +11,10 @@ function delete_message(){
     $params['message_id'] = htmlspecialchars($_POST['message_id']);
     $method = 'deleteMessage';
 
-    file_put_contents('req_logs/site_out.log', print_r($params, 1));// log
+    file_put_contents('logs/site_out.log', print_r($params, 1));// log
 
     $response = sendRequest($method, $params);// отправка запроса
-    file_put_contents('req_logs/site_in.log', print_r($response, 1));// log
+    file_put_contents('logs/site_in.log', print_r($response, 1));// log
 
     $_SESSION['info'] = 'сообщение удалено';
 

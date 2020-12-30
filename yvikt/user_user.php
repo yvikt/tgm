@@ -47,7 +47,7 @@ function user_user(&$incoming_data, &$session){ // TODO проставить а�
 
     case 1: // это эксперт - (отправка сообщения от эксперта к пользователю)
           if(get_my_user($chat_id) == '0'){ // нет подключенных пользователей
-            file_put_contents('req_logs/user-user_in.log', "incoming_text_message: $incoming_text_message; chat_id: $chat_id \n");
+            file_put_contents('logs/user-user_in.log', "incoming_text_message: $incoming_text_message; chat_id: $chat_id \n");
             $outgoing_data = command_handler_1($incoming_text_message, $chat_id, $session);
             $outgoing_data['chat_id'] = $chat_id;
             return $outgoing_data;

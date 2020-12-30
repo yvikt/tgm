@@ -13,10 +13,10 @@ function quiz(){
     $params['explanation'] = 'be attentive and count again ;-)';
     $method = 'sendPoll';
 
-    file_put_contents('req_logs/site_out.log', print_r($params, 1));// log
+    file_put_contents('logs/site_out.log', print_r($params, 1));// log
 
     $response = sendRequest($method, $params);// отправка запроса
-    file_put_contents('req_logs/site_in.log', print_r($response, 1));// log
+    file_put_contents('logs/site_in.log', print_r($response, 1));// log
 
     $_SESSION['last_message_id'] = $response['result']['message_id'];
     $_SESSION['info'] = 'quiz отправлен';

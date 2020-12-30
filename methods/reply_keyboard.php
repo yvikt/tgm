@@ -25,10 +25,10 @@ function reply_keyboard(){
   $params['text'] = 'reply keyboard';
   $params['reply_markup'] = json_encode($reply_markup);
 
-  file_put_contents('req_logs/site_out.log', print_r($params, 1));// log
+  file_put_contents('logs/site_out.log', print_r($params, 1));// log
 
   $response = sendRequest($method, $params);// отправка запроса
-  file_put_contents('req_logs/site_in.log', print_r($response, 1));// log
+  file_put_contents('logs/site_in.log', print_r($response, 1));// log
 
   $_SESSION['info'] = 'основная клавиатура добавлена';
   if(!strpos($_SERVER['HTTP_REFERER'],'reply_keyboard')) {

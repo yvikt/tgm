@@ -6,13 +6,16 @@ function send_message(){
   if($_POST) { // если пришел POST запрос
     $params = [];
     $params['chat_id'] = $_POST['chat_id'];
-    $params['text'] = htmlspecialchars($_POST['text']);
+//    $params['text'] = htmlspecialchars($_POST['text']);
+    $params['text'] = $_POST['text'];
     $method = 'sendMessage';
 
-    file_put_contents('req_logs/site_out.log', print_r($params, 1));// log
+    $params['parse_mode'] = 'HTML';
+
+    file_put_contents('logs/site_out.log', print_r($params, 1));// log
 
     $response = sendRequest($method, $params);// отправка запроса
-    file_put_contents('req_logs/site_in.log', print_r($response, 1));// log
+    file_put_contents('logs/site_in.log', print_r($response, 1));// log
 
     $_SESSION['last_message_id'] = $response['result']['message_id'];
     $_SESSION['info'] = 'запрос отправлен';
