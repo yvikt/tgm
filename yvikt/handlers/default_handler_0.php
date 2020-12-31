@@ -28,7 +28,7 @@ function default_handler_0($text, &$session){
 
       default:
       if($session[5] == 0 ) {
-        return ['text' => 'я вас не понял'];
+        return ['text' => '&#x274C я вас не понял'];
       }
   }
 }

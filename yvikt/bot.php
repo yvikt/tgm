@@ -64,6 +64,7 @@ $session = session_get($chat_id);
       $outgoing_data = user_user($incoming_data, $session); break; // TODO переработать ?
 
     case 2: // user <-> quiz-1
+    case 3: // user <-> quiz-2
 
       $outgoing_data = user_quiz_1($incoming_data, $session); break;
 
@@ -79,6 +80,7 @@ $session = session_get($chat_id);
   // TODO в случае quiz режима, может происходить две отправки: 1-текстовое сообщение, 2-следующий poll
   if($outgoing_data['text'] && $outgoing_data['chat_id']) { // отправка текстовых сообщений
   # отправка ответа
+    $outgoing_data['parse_mode'] = 'HTML';
     $api_response = sendToTelegram($outgoing_data);
     file_put_contents('logs/outgoing_json.log', json_encode($outgoing_data) . "\n", FILE_APPEND);
     file_put_contents('logs/telegram_api_response_json.log', json_encode($api_response) . "\n", FILE_APPEND);

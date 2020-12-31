@@ -1,74 +1,60 @@
 <?php
 $quiz_dir = 'quiz';
 
-function create_quiz($user_id){
-  global $questions;
+function create_quiz(&$session){
+  global $questions_1;
+  global $questions_2;
   global $quiz_dir;
-  $dir = "$quiz_dir/$user_id";
+  if($session[5] == 2) $questions = $questions_1;//легкий уровень
+  if($session[5] == 3) $questions = $questions_2;//сложный уровень
+  $user_id = $session[1];
+  $dir = "$quiz_dir/$user_id";//отдельная папка для каждого пользователя
   if(!is_dir($dir)){
     mkdir($dir);
   }
-  $f = fopen("$dir/".time(), 'w');
   $count = count($questions);
-  fputs($f, "0,0,$count,0\n");// строка заголовка: курсор, № текущий вопрос, всего вопросов, правильных ответов
+
+  $f1 = fopen("$dir/progress", 'w');//создаем новый progress файл
+                                                       //(предыдущий  курсор нужен для составления отчета)
+  fputs($f1, "0,0,0,$count,0");//строка заголовка: предыдущий курсор, курсор, № текущий вопрос, всего вопросов, правильных ответов
+  fclose($f1);
+
+  $f2 = fopen("$dir/quiz", 'w');//создаем новый quiz файл
   foreach ($questions as $question){
     $row = '';// вес вопроса, вопрос, правильный ответ, ответ-1, ответ-2, ответ-3 ...
     $write = array_search(true, $question['answers']);
-    $row  .= "${question['weight']},\"${question['question']}\",\"$write\"";
+    $row  .= "{$question['weight']},\"{$question['question']}\",\"$write\"";
     foreach (array_keys($question['answers']) as $answer){
       $row .= ",\"$answer\"";
     }
     $row .= "\n";
-    fputs($f, $row);
+    fputs($f2, $row);
   }
-  fclose($f);
-}
+  fclose($f2);
 
-function find_quiz($user_id){
-  global $quiz_dir;
-  $dir = "$quiz_dir/$user_id";
-  $files = scandir($dir);
-  $item = preg_grep('/^[0-9]/',$files); // находим файл имя которого начинается с цифры
-  $quiz = array_pop($item);
-  return "$quiz_dir/$user_id/$quiz";
-}
-
-function init_quiz($user_id){
-  $file = find_quiz($user_id);
-  $f = fopen($file, 'r+');
-  $progress = fgetcsv($f);//считываем заголовок и как следствие курсор передвигается на первый вопрос (вторая строка)
-  $progress[0] = ftell($f);// обновляем значение курсора (текущий вопрос пока = 0)
-  rewind($f);
-  fputcsv($f, $progress); // обновляем заголовок
-  fclose($f);
-}
-
-function archive_quiz($user_id){
-  global $quiz_dir;
-  $user_quiz_dir = "$quiz_dir/$user_id";
-  $files = scandir($user_quiz_dir);
-  $item = preg_grep('/^[0-9]/',$files); // находим файл имя которого начинается с цифры
-  $quiz = array_pop($item);
-
-  $archive_dir = "$user_quiz_dir/archive";
-  if(!is_dir($archive_dir)){
-    mkdir($archive_dir);
-  }
-  rename("./$user_quiz_dir/$quiz", "./$archive_dir/$quiz");
+  //для формирования отчета прохождения теста создаем соответственный файл
+  $f3 = fopen("$dir/report", 'w');//создаем новый report файл
+  fclose($f3);
 }
 
 function next_poll(&$session){
+  global $quiz_dir;
   $user_id = $session[1]; // $session[1] это и есть $user_id
-  $file = find_quiz($session[1]);
-  $f = fopen($file, 'c+');
-  $progress = fgetcsv($f);
-  fseek($f, intval($progress[0]));
-  $question = fgetcsv($f);
-  $progress[0] = ftell($f);
-  $progress[1] += 1;
-  rewind($f);
-  fputcsv($f, $progress);
-  fclose($f);
+  $dir = "$quiz_dir/$user_id";
+  $f1 = fopen("$dir/progress", 'c+');
+  $progress = fgetcsv($f1);
+  $progress[0] = $progress[1];//сохраняем предыдущее значение курсора
+  
+  $f2 = fopen("$dir/quiz", 'r');
+  fseek($f2, intval($progress[1]));// перемещаем курсор
+  $question = fgetcsv($f2);//считываем очередную строку с вопросом и ответами
+  $progress[1] = ftell($f2);//сохраняем последнее положение курсора
+  fclose($f2);
+
+  $progress[2] += 1;
+  rewind($f1);
+  fputcsv($f1, $progress);
+  fclose($f1);
 
   $params = [];
   $params['chat_id'] = $user_id;
@@ -80,22 +66,26 @@ function next_poll(&$session){
   $write = array_search($question[2], $answers);
   $params['correct_option_id'] = $write;
   $params['explanation'] = $answers[$write];
+//  $params['open_period'] = 10;
 
   $session[6] = $write; // сохраняем номер правильного ответа в сессию, используя поле для сообщения
   return $params;
 }
 
 function get_answer($answer, &$session){
-  $user_id = $session[1];
-  $file = find_quiz($user_id);
-  $f = fopen($file, 'c+');
-  $progress = fgetcsv($f);
+  global $quiz_dir;
+  $user_id = $session[1]; // $session[1] это и есть $user_id
+  $dir = "$quiz_dir/$user_id";
 
-  if($session[6] == $answer){ // пришедший ответ сверяем с правильным, ранее сохраненным в сессии
-    $progress[3] += 1;
-    rewind($f);
-    fputcsv($f, $progress);
-    fclose($f);
+  $f1 = fopen("$dir/progress", 'c+');
+  $progress = fgetcsv($f1);
+
+  report_log($answer, $user_id, $progress[2]);
+
+  if($session[6] == $answer){ // сверяем пришедший ответ с правильным, ранее сохраненным в сессии
+    $progress[4] += 1;//увеличиваем кол-во правильных
+    rewind($f1);
+    fputcsv($f1, $progress);
     $session[6] = 'correct';
   //  return ['text' => 'correct'];
   }
@@ -103,22 +93,94 @@ function get_answer($answer, &$session){
     $session[6] = 'wrong';
   //  return ['text' => 'wrong'];
   }
+  fclose($f1);
 
-  if($progress[1] == $progress[2]){ // если это ответ на последний вопрос
-    archive_quiz($user_id);
+  if($progress[2] == $progress[3]){ // если это ответ на последний вопрос
+    $report = report_get($user_id);
+
+    $percent = round($progress[4] / $progress[3] * 100);
+    $total = "{$progress[4]} из {$progress[3]}";
+
+    // TODO+ отправить отчет студенту и эксперту
+    if($expert_id = any_expert()) {
+      $uf = fopen("sessions/$user_id", 'r');
+      $user = fgetcsv($uf); // извлекаем имя студента для отправки отчета эксперту
+      $user_name = "first_name: $user[0]\nlast_name: $user[1]\nlogin: $user[2]\n";
+      $user_report = "$user_name\n$report\n$total = $percent%";
+
+      $outgoing_data['chat_id'] = $expert_id;
+      $outgoing_data['text'] = "$user_report"; // !!! важно - двойные кавычки нужны для правильной интерполяции символов &#x2705
+      $outgoing_data['parse_mode'] = 'HTML';
+      sendToTelegram($outgoing_data);
+    }
+
+    archivate($user_id);
     $session[4] = 10; // возврат в главное меню
     $session[5] = 0; // выход из режима quiz
-    $percent = $progress[3] / $progress[2] * 100 % 100;
+
     return [
-        'text' => "Тест окончен. Вы ответили на {$progress[3]} из {$progress[2]} вопросов. Это $percent%",
-        'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(10)]
+        'text' => "<b>Результаты теста</b>\n\n" . $report . "\nВы ответили на $total вопросов. Это $percent%",
+        'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(8)]
     ];
   }
   return ['text' => ' ']; //эта строка пустой ответ (костыль, чтобы дополнительно обновлялась сессия, но это не обязательно)
                           //в файле bot.php это первый из последних трех if-ов
 }
 
-$questions = [
+function report_get($user_id){
+  global $quiz_dir;
+  $dir = "$quiz_dir/$user_id";
+  return file_get_contents("$dir/report");
+}
+
+function report_log($answer, $user_id, $current_question){
+  global $quiz_dir;
+  $dir = "$quiz_dir/$user_id";
+
+  $f1 = fopen("$dir/progress", 'r');//считываем progress
+  $progress = fgetcsv($f1);
+  fclose($f1);
+
+  $f2 = fopen("$dir/quiz", 'r');
+  fseek($f2, intval($progress[0]));// перемещаем курсор на предыдущий вопрос (тот на который пришел ответ)
+  $question = fgetcsv($f2);
+  fclose($f2);
+
+  $log = '';
+  $log .= "<b>$current_question.</b> {$question[1]}\n";
+  $answers = array_slice($question, 3);
+  $write = array_search($question[2], $answers);//ищем индекс правильного ответа, так как $answer это тоже индекс
+
+  if($answer == $write){
+    $mark = '&#x2705';
+  }
+  else $mark = '&#x274C';
+  $log .= "$mark<i>{$answers["$answer"]}</i>";
+  if($answer != $write){
+    $log .= " <b><i>({$answers["$write"]})</i></b>";
+  }
+  $log .= "\n\n";
+
+  $f = fopen("$dir/report", 'a+');
+  fputs($f, "$log");
+  fclose($f);
+}
+
+function archivate($user_id){
+  global $quiz_dir;
+  $dir = "$quiz_dir/$user_id";
+  $archive_dir = "$dir/archive";
+  if(!is_dir($archive_dir)){
+    mkdir($archive_dir);
+  }
+  $time = time();
+  rename("./$dir/progress", "./$archive_dir/$time-progress");
+  rename("./$dir/quiz", "./$archive_dir/$time-quiz");
+  rename("./$dir/report", "./$archive_dir/$time-report");
+}
+
+
+$questions_1 = [
     [
         'weight' => 3,
         'question' => 'Насколько хорошо преподаватель мотивирует Вас к изучению предмета',
@@ -176,6 +238,39 @@ $questions = [
     ]
 ];
 
+
+$questions_2 = [
+    [
+        'weight' => 3,
+        'question' => 'Какова окружность Земли?',
+        'answers' => [
+            '40000 км' => true,
+            '40000 миль' => false,
+            '40 миллионов км' => false,
+            '40 километров' => false
+        ]
+    ],
+    [
+        'weight' => 1,
+        'question' => 'Какое расстояние от Солца до Земли?',
+        'answers' => [
+            '500 млн км' => false,
+            '150 млн км' => true,
+            '1 световой год' => false,
+            '1 световой день' => false
+        ]
+    ],
+    [
+        'weight' => 2,
+        'question' => 'Какая самая близкая к нам звезда?',
+        'answers' => [
+            'Андромеда' => false,
+            'Солнце' => true,
+            'Альфа Центавра' => false,
+            'Полярная звезда' => false
+        ]
+    ]
+];
 
 /*
 // если пришел контакт (пока что отправляем туда же от куда пришел)

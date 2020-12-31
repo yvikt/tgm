@@ -43,8 +43,8 @@ function keyboard($number){
     case 5:
       return [[['text' => $commands[5] ]]];   // quit
     case 6:
-      return [[ ['text' => $commands[6] ],    // начать
-                ['text' => $commands[7] ] ]]; // отказаться
+      return [[ ['text' => $commands[7] ],    // отказаться
+                ['text' => $commands[6] ] ]]; // начать
     case 7:
       return [[['text' => $commands[8] ]]];   // прекратить
     case 8:
