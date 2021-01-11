@@ -12,15 +12,17 @@ function user_user(&$incoming_data, &$session){ // TODO проставить а�
 
   switch ($session[2]){ // коммутация "пользователь->эксперт" - "эксперт->пользователь"
 
+    // ПОЛЬЗОВАТЕЛЬ -> ЭКСПЕРТ \\
     case 0: // это пользователь (отправка сообщения от пользователя к эксперту)
         $expert_id = get_my_expert($chat_id); // пользователь отправляет в id експерта
         $first_name = $incoming_data['message']['from']['first_name'];
         $last_name = $incoming_data['message']['from']['last_name'];
         $username = $incoming_data['message']['from']['username'];
 
+        // прекращение общения пользователем \\
         if($incoming_text_message == $commands[121]){ // прекращение общения
-          $message = "$first_name $last_name $username (пользователь) покинул чат";
           disconnect($chat_id, $expert_id); // юзер-id, эксперт-id
+
           // TODO сделать единую точку вЫхода
           $session[5] = 0;
           $session[4] = 10;
@@ -28,43 +30,117 @@ function user_user(&$incoming_data, &$session){ // TODO проставить а�
           $session[6] = $incoming_text_message;
           session_update($session);  // ОТПРАВКА (юзеру в случае выхода)
 
-          $outgoing_data = [
-              'text' => 'Главное меню',
+          $message_to_user = "Вы завершили общение\nГлавное меню";
+          $outgoing_data_to_user = [
+              'chat_id' => $chat_id,
+              'text' => $message_to_user,
               'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(10)]
           ];
-          $outgoing_data['chat_id'] = $chat_id;
-          sendToTelegram($outgoing_data);
-        }
-        else { // общение продолжается
-          $message = "$first_name $last_name $username спрашивает:  $incoming_text_message";//TODO заменить на "Вы: "
-          $keyboard =  ['reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(12)] ];
-        }
-        chat_log($chat_id, "$message\n"); // пишет в свой же (пользователя) лог
-        // ОТПРАВКА (эксперту)
-        fopen(BASE_URL . "sendMessage?chat_id={$expert_id}&parse_mode=html&text={$message}", "r");
-        exit;
-        break;
+          chat_log($chat_id, "$message_to_user\n");
+          sendToTelegram($outgoing_data_to_user);
 
+          $message_to_expert = "пользователь $chat_id\n$first_name $last_name $username\nпокинул чат";
+          $outgoing_data_to_expert = [
+              'chat_id' => $expert_id,
+              'text' => $message_to_expert,
+              'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(5)]
+          ];
+          chat_log($chat_id, "$message_to_expert\n"); // пишет в свой же (пользователя) лог
+          sendToTelegram($outgoing_data_to_expert);
+        }
+
+        else { // общение продолжается
+          $message_to_expert = "$first_name $last_name $username спрашивает:  $incoming_text_message";//TODO заменить на "Вы: "
+          $outgoing_data_to_expert = [
+              'chat_id' => $expert_id,
+              'text' => $message_to_expert,
+              'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(15)]
+          ];
+          chat_log($chat_id, "$message_to_expert\n"); // пишет в свой же (пользователя) лог
+          // ОТПРАВКА (эксперту)
+          sendToTelegram($outgoing_data_to_expert);
+        }
+        exit;
+
+
+
+    // ЭКСПЕРТ -> ПОЛЬЗОВАТЕЛЬ \\
     case 1: // это эксперт - (отправка сообщения от эксперта к пользователю)
           if(get_my_user($chat_id) == '0'){ // нет подключенных пользователей
             file_put_contents('logs/user-user_in.log', "incoming_text_message: $incoming_text_message; chat_id: $chat_id \n");
-            $outgoing_data = command_handler_1($incoming_text_message, $chat_id, $session);
+            $outgoing_data = command_handler_1($incoming_text_message, $chat_id, $session);//TODO это единственная точка выхода
             $outgoing_data['chat_id'] = $chat_id;
             return $outgoing_data;
           }
           else $user_id = get_my_user($chat_id);
 
-        if($incoming_text_message == $commands[121]){ // прекращение общения
-          $message = '(эксперт) покинул чат';
+        // прекращение общения экспертом \\
+        if($incoming_text_message == $commands[121]){
           disconnect($user_id, $chat_id); // юзер-id, эксперт-id
+
+          $message_to_expert = "вы отключились от пользователя\n$user_id";
+          $outgoing_data_to_expert = [
+              'chat_id' => $chat_id,
+              'text' => $message_to_expert,
+              'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(5)]
+          ];
+          chat_log($chat_id, "$message_to_expert\n"); // пишет в свой же (пользователя) лог
+          sendToTelegram($outgoing_data_to_expert);
+
+          $user_session = session_get($user_id);
+          $user_session[5] = 0;
+          $user_session[4] = 10;
+          session_update($user_session);
+          $message_to_user = "Эксперт покинул чат\nГлавное меню";
+          $outgoing_data_to_user = [
+              'chat_id' => $user_id,
+              'text' => $message_to_user,
+              'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(10)]
+          ];
+          chat_log($chat_id, "$message_to_user\n");
+          sendToTelegram($outgoing_data_to_user);
         }
-        else { // общение продолжается
-          $message = "эксперт отвечает: $incoming_text_message";
+
+        // BAN \\
+        elseif($incoming_text_message == $commands[6]){
+          add_to_ban($user_id);
+          disconnect($user_id, $chat_id); // юзер-id, эксперт-id
+
+          $message_to_expert = "пользователь $user_id забанен";
+          $outgoing_data_to_expert = [
+              'chat_id' => $chat_id,
+              'text' => $message_to_expert,
+              'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(5)]
+          ];
+          chat_log($chat_id, "$message_to_expert\n");
+          sendToTelegram($outgoing_data_to_expert);
+
+          $user_session = session_get($user_id);
+          $user_session[5] = 0;
+          $user_session[4] = 'BAN';
+          session_update($user_session);
+          $message_to_user = "Вас заблокировали!";
+          $outgoing_data_to_user = [
+              'chat_id' => $user_id,
+              'text' => $message_to_user,
+              'reply_markup' => [ 'remove_keyboard' => true ]
+          ];
+          chat_log($chat_id, "$message_to_user\n");
+          sendToTelegram($outgoing_data_to_user);
         }
-        chat_log($user_id, "$message\n"); // пишет в пользователя лог
-        fopen(BASE_URL . "sendMessage?chat_id={$user_id}&parse_mode=html&text={$message}", "r");
+
+        // общение продолжается \\
+        else {
+          $message_to_user = "эксперт отвечает: $incoming_text_message";
+          $outgoing_data_to_user = [
+              'chat_id' => $user_id,
+              'text' => $message_to_user
+          ];
+          chat_log($user_id, "$message_to_user\n"); // пишет в пользователя лог
+          sendToTelegram($outgoing_data_to_user);
+        }
+
         exit;
-        break;
   }
 
 

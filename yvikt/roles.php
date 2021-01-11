@@ -25,7 +25,7 @@ function del_expert($user_id){
 }
 
 // очередь бедет выглядеть в виде файлов /communications/users/user_id с нулем внутри
-function any_expert(){
+function any_free_expert(){
   global $expert_dir;
   $list = '';
   $files = array_slice(scandir($expert_dir), 2);
@@ -34,6 +34,12 @@ function any_expert(){
       return $file; // возвращает первого свободного эксперта (по алфавиту - без учета равномерной нагрузки между экспертами)
     }
   }
+}
+
+function any_expert(){
+  global $expert_dir;
+  $files = array_slice(scandir($expert_dir), 2);
+  return array_pop($files);
 }
 
 ### observer ###

@@ -3,7 +3,7 @@
 // Искуственный Интеллект
 
 function default_handler_0($text, &$session){
-
+global $bot_name;
   switch ($text) {
     case 'кто я':
       if (is_user($session)) {
@@ -18,15 +18,15 @@ function default_handler_0($text, &$session){
     case 'ты кто':
     case 'кто ты':
     case 'кто вы':
-      return [ 'text' => 'я бот BOT_NAME' ]; break;
+      return [ 'text' => "я бот $bot_name" ]; break;
 
     case 'здравствуйте':
     case 'привет':
       if($session[5] == 0) { // только в режиме общения человек <-> бот
-        return ['text' => 'Здравствуйте. Я бот BOT_NAME'];
+        return ['text' => "Здравствуйте. Я бот $bot_name"];
       }; break;
 
-      default:
+    default:
       if($session[5] == 0 ) {
         return ['text' => '&#x274C я вас не понял'];
       }

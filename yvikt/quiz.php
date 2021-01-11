@@ -102,25 +102,26 @@ function get_answer($answer, &$session){
     $total = "{$progress[4]} из {$progress[3]}";
 
     // TODO+ отправить отчет студенту и эксперту
-    if($expert_id = any_expert()) {
-      $uf = fopen("sessions/$user_id", 'r');
-      $user = fgetcsv($uf); // извлекаем имя студента для отправки отчета эксперту
-      $user_name = "first_name: $user[0]\nlast_name: $user[1]\nlogin: $user[2]\n";
-      $user_report = "$user_name\n$report\n$total = $percent%";
+    $uf = fopen("sessions/$user_id", 'r');
+    $user = fgetcsv($uf); // извлекаем имя студента для отправки отчета эксперту
+    $user_name = "first_name: $user[0]\nlast_name: $user[1]\nlogin: $user[2]\n";
+    $user_report = "$user_name\n$report\n$total = $percent%";
 
+    if($expert_id = any_expert()) {
       $outgoing_data['chat_id'] = $expert_id;
       $outgoing_data['text'] = "$user_report"; // !!! важно - двойные кавычки нужны для правильной интерполяции символов &#x2705
       $outgoing_data['parse_mode'] = 'HTML';
       sendToTelegram($outgoing_data);
     }
+    else{
+      que_push($user_id, $user_report);
+    }
 
     archivate($user_id);
-    $session[4] = 10; // возврат в главное меню
-    $session[5] = 0; // выход из режима quiz
 
     return [
         'text' => "<b>Результаты теста</b>\n\n" . $report . "\nВы ответили на $total вопросов. Это $percent%",
-        'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(8)]
+        'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(8)]//запрос контакта
     ];
   }
   return ['text' => ' ']; //эта строка пустой ответ (костыль, чтобы дополнительно обновлялась сессия, но это не обязательно)

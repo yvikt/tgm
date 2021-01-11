@@ -3,19 +3,22 @@
 // не требуют повторной передачи разметки.
 // поэтому в секциях /// KEYBOARD 11, 12, 13 \\\ ответы состоят только из текста
 
+
 function greeting($keyboard){
+  global $snippets;
   return [
-      'text'   => 'Здравствуйте! Я бот BOT_NAME ! Выберите пункт который вас интересует.',
+      'text'   => $snippets['greeting'],
       'reply_markup' => [ 'resize_keyboard' => true, 'keyboard' => $keyboard ]
   ];
 }
 
 function command_handler_0($text, $chat_id, &$session){
   global $commands;
+  global $snippets;
   // $previous = $session[3];
   $session[3] = $session[4];
   switch ($text) {                 // !!! Номер команды это одно, номер клавиатуры это другое !!!
-    case $commands[1]: // 'start'
+    case $commands[1]: // '/start'
     case $commands[2]: // '/'
       $session[4] = 10;// сброс сессии
       return [
@@ -34,25 +37,26 @@ function command_handler_0($text, $chat_id, &$session){
     case $commands[11]:
       $session[4] = 11;
       return [
-          'text' => 'Наше обучение самое лучшее. Выберите интересующий вас вопрос',
+          'text' => $snippets['про обучение'],
           'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(11)]
       ];
 
     case $commands[12]:
-      if($expert_id = any_expert()) { // есть ли свободные эксперты?
+      if($expert_id = any_free_expert()) { // есть ли свободные эксперты?
         $session[4] = 12;
         $session[5] = 1;  // быть "общительным" :-)`1
         create_chat($chat_id, $expert_id);
         connect($chat_id, $expert_id);
         return [
-            'text' => 'Вы подключены к эксперту.',
+            'text' => 'Вы подключены к эксперту и можете задать вопрос либо прекратить общение.',
             'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(12)]
         ];
       }
       else {
         $session[4] = 10;
+        que_push($chat_id, "хотел пообщаться");
         return [
-            'text' => 'К сожалению, свободных экспертов нет. Пожалуйста попробуйте позже либо мы с вами свяжемся.',
+            'text' => 'К сожалению, свободных экспертов нет. Пожалуйста попробуйте позже либо мы с вами свяжемся как только сможем.',
             'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(10)]
         ];
       }
@@ -73,13 +77,13 @@ function command_handler_0($text, $chat_id, &$session){
       /// KEYBOARD 11 \\\
     case $commands[111]:
       $session[4] = 111;
-      return [ 'text' => 'уроки проходят в группах до 6 человек 2 раза в неделю' ];
+      return [ 'text' => $snippets['как проходят уроки'] ];
     case $commands[112]:
       $session[4] = 112;
-      return [ 'text' => 'стоимость индивидуальных занятий. стоимость групповых занятий' ];
+      return [ 'text' => $snippets['стоимость'] ];
     case $commands[113]:
       $session[4] = 113;
-      return [ 'text' => 'здесь описание преимуществ онлай обучения в целом и возмодности нашей платформы' ];
+      return [ 'text' => $snippets['преимущества'] ];
 /*
       /// KEYBOARD 12 \\\
     case $commands[121]:
@@ -96,56 +100,34 @@ function command_handler_0($text, $chat_id, &$session){
     /// KEYBOARD 13 \\\
     case $commands[131]:
       $session[4] = 131;
-      return [ 'text' => 'здесь перечисляются курсы для взрослых' ];
+      return [ 'text' => $snippets['взрослые'] ];
     case $commands[132]:
       $session[4] = 132;
-      return [ 'text' => 'здесь перечисляются курсы для подростков' ];
+      return [ 'text' => $snippets['подростки'] ];
     case $commands[133]:
       $session[4] = 133;
-      return [ 'text' => 'здесь перечисляются курсы для детей' ];
+      return [ 'text' => $snippets['дети'] ];
+    case $commands[134]:
+      $session[4] = 134;
+      return [ 'text' => $snippets['обучение преподавателей'] ];
+    case $commands[135]:
+      $session[4] = 135;
+      return [ 'text' => $snippets['подготовка экзаменам'] ];
 
     /// KEYBOARD 14 \\\  QUIZ
     case $commands[141]:
-      $session[4] = 141; // ???
-      $session[5] = 2; // quiz-1
+      $session[4] = 141;
+      $session[5] = 2;
 
-      return [ 'text' => "Давайте начнем тест вашего уровня языка. Вам нужно будет ответить на 40 вопросов. Кнопка $commands[6] прерывает тест. В таком случае Вы можете пройти тест в другой раз.",
+      return [ 'text' => "Давайте начнем тест вашего уровня языка. Вам нужно будет ответить на 40 вопросов. Кнопка $commands[906] прерывает тест. В таком случае Вы можете пройти тест в другой раз.",
           'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(6)]
       ];
     case $commands[142]:
-      $session[4] = 142; // ???
-      $session[5] = 3; // quiz-2 ???
-      return [ 'text' => "Давайте начнем тест вашего уровня языка. Вам нужно будет ответить на 40 вопросов. Кнопка $commands[6] прерывает тест. В таком случае Вы можете пройти тест в другой раз.",
+      $session[4] = 142;
+      $session[5] = 3;
+      return [ 'text' => "Давайте начнем тест вашего уровня языка. Вам нужно будет ответить на 40 вопросов. Кнопка $commands[906] прерывает тест. В таком случае Вы можете пройти тест в другой раз.",
       'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(6)]
       ];
-
-
-      /*
-    case $commands[6]:
-      $session[4] = 6;
-      $session[5] = 0; // конец режима quiz - снова обычный юзер
-      return [
-          'text' => 'Тест не защитан. Спасибо за вашу попытку. Вы можете попробовать в другой раз. Успехов! Оставьте свой контакт простым нажатием на кнопку.',
-          'reply_markup' => ['resize_keyboard' => true,
-             // 'one_time_keyboard' => true,
-              'keyboard' => keyboard(7)]
-      ];
-      */
-    // 'отказаться' (от отпраки контакта)
-    case $commands[7]:
-      $session[4] = 7;
-      return [
-          'text' => 'Главное меню. (оставить контакт отказались)',
-          'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(10)]
-      ];
-
-    case $commands[9]: // ? не реагирует как на команду
-      $session[4] = 7;
-      return [
-          'text' => 'Спасибо. С вами свяжется наш эксперт.',
-          'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(10)]
-      ];
-
 
       /// SERVICE \\\
     case $commands[3]: // be expert
@@ -157,6 +139,7 @@ function command_handler_0($text, $chat_id, &$session){
         $session[5] = 1; // быть "общительным" :-)
 //        global $id;
         be_expert($chat_id); // TODO избавиться от global $id
+        que_pop($chat_id, $session); // отправка всех накопившися сообщений
         return [
             'text' => 'вы стали ЭКСПЕРТОМ. теперь сообщения от пользователей будут перенапрвляться вам для того чтобы вы ответили на их вопросы',
             'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(5)]

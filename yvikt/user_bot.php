@@ -6,7 +6,7 @@
 
 function user_bot(&$incoming_data, &$session){
   global $commands;
-  $text = $incoming_data['message']['text'] ?? 'no_text';
+  $text = $incoming_data['message']['text'] ?? '_no_text_';// (возможно это контакт)
   $chat_id = $incoming_data['message']['chat']['id'];
 
   switch ($text) {
@@ -18,7 +18,6 @@ function user_bot(&$incoming_data, &$session){
         $outgoing_data = command_handler_0($text, $chat_id, $session);
         $outgoing_data['chat_id'] = $chat_id;
         return $outgoing_data;
-
 
       // обработка текста (входящего сообщения) если он не подпадает под команду
       default :

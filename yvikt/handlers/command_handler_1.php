@@ -30,6 +30,8 @@ function command_handler_1($text, $chat_id, &$session){
 
       // временно
 
+    case '__unban': break;
+
     default:
       if($session[2] == 1) {
         return ['text' => "ping $text"];
