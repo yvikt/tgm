@@ -47,6 +47,15 @@ function command_handler_0($text, $chat_id, &$session){
         $session[5] = 1;  // быть "общительным" :-)`1
         create_chat($chat_id, $expert_id);
         connect($chat_id, $expert_id);
+
+        $message_to_expert = "пользователь $chat_id подключился";
+        $outgoing_data_to_expert = [
+            'chat_id' => $expert_id,
+            'text' => $message_to_expert,
+            'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(15)]
+        ];
+        sendToTelegram($outgoing_data_to_expert);
+
         return [
             'text' => 'Вы подключены к эксперту и можете задать вопрос либо прекратить общение.',
             'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(12)]
@@ -119,13 +128,13 @@ function command_handler_0($text, $chat_id, &$session){
       $session[4] = 141;
       $session[5] = 2;
 
-      return [ 'text' => "Давайте начнем тест вашего уровня языка. Вам нужно будет ответить на 40 вопросов. Кнопка $commands[906] прерывает тест. В таком случае Вы можете пройти тест в другой раз.",
+      return [ 'text' => "Давайте начнем тест вашего уровня языка. Вам нужно будет ответить на 40 вопросов. Кнопка <b>\"$commands[908]\"</b> прерывает тест. В таком случае Вы можете пройти тест в другой раз.",
           'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(6)]
       ];
     case $commands[142]:
       $session[4] = 142;
       $session[5] = 3;
-      return [ 'text' => "Давайте начнем тест вашего уровня языка. Вам нужно будет ответить на 40 вопросов. Кнопка $commands[906] прерывает тест. В таком случае Вы можете пройти тест в другой раз.",
+      return [ 'text' => "Давайте начнем тест вашего уровня языка. Вам нужно будет ответить на 40 вопросов. Кнопка <b>\"$commands[908]\"</b> прерывает тест. В таком случае Вы можете пройти тест в другой раз.",
       'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(6)]
       ];
 

@@ -33,9 +33,9 @@ $incoming_data = json_decode($raw_data, TRUE);
 ### MAIN ###
 // обрабатывать только message или poll_answer или callback_query
 if (array_key_exists('message', $incoming_data) || array_key_exists('poll_answer', $incoming_data) || array_key_exists('callback_query', $incoming_data)) {
-//    mylog("if 'message' || 'poll_answer'\n");
+//    bot_logger("if 'message' || 'poll_answer'\n");
   if($incoming_data['message']){
-      mylog("if 'message'\n");
+      bot_logger("if 'message'\n");
     ### BAN ###
     if(is_banned($incoming_data['message']['from']['id']))//exit;
     {
@@ -51,7 +51,7 @@ if (array_key_exists('message', $incoming_data) || array_key_exists('poll_answer
     $incoming_text_message = $incoming_data['message']['text'] ?? '_no_text_';// (возможно это контакт)
   }
   elseif($incoming_data['poll_answer']){ // эта часть нужна для корректной работы сессии
-      mylog("if 'poll_answer'\n");
+      bot_logger("if 'poll_answer'\n");
     $date = time();
     $chat_id = $incoming_data['poll_answer']['user']['id'];
     $incoming_text_message = "answer: {$incoming_data['poll_answer']['option_ids'][0]}";
@@ -59,11 +59,11 @@ if (array_key_exists('message', $incoming_data) || array_key_exists('poll_answer
   }
 
   elseif ($incoming_data['callback_query']){ // обработка callback-а инициирующего чат с пользователем
-      mylog("if 'callback_query'\n");
+      bot_logger("if 'callback_query'\n");
 
       //TODO наладить связь с пользователем по нажатию inline кнопки
     if($incoming_data['callback_query']['data'] == 'begin_chat') {
-      mylog("if 'begin chat'\n");
+      bot_logger("if 'begin chat'\n");
       $expert_id = $incoming_data['callback_query']['message']['chat']['id'];
       $user_id = intval( explode('\n', $incoming_data['callback_query']['message']['text'])[0] );
 

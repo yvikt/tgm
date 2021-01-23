@@ -50,7 +50,7 @@ function user_user(&$incoming_data, &$session){ // TODO проставить а�
         }
 
         else { // общение продолжается
-          $message_to_expert = "$first_name $last_name $username спрашивает:  $incoming_text_message";//TODO заменить на "Вы: "
+          $message_to_expert = "🙋🙋‍♂️ $first_name $last_name ($username)\n$incoming_text_message";// вопрос пользователя
           $outgoing_data_to_expert = [
               'chat_id' => $expert_id,
               'text' => $message_to_expert,
@@ -131,7 +131,7 @@ function user_user(&$incoming_data, &$session){ // TODO проставить а�
 
         // общение продолжается \\
         else {
-          $message_to_user = "эксперт отвечает: $incoming_text_message";
+          $message_to_user = "🦊 $incoming_text_message"; // ответ эксперта
           $outgoing_data_to_user = [
               'chat_id' => $user_id,
               'text' => $message_to_user
