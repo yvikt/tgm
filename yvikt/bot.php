@@ -21,6 +21,7 @@ const BASE_URL = 'https://api.telegram.org/bot' . TOKEN . '/';
 
 # Принимаем запрос
 $raw_data = file_get_contents('php://input');
+
 //exit;
 # запись последних пришедших данных пришедших боту
 file_put_contents('logs/incoming_raw.log', $raw_data ."\n", FILE_APPEND);

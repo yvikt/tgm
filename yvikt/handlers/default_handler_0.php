@@ -3,7 +3,18 @@
 // Искуственный Интеллект
 
 function default_handler_0($text, &$session){
-global $bot_name;
+  global $bot_name;
+  global $snippets;
+  if(strpos($text, '/start ') == 0) { // deep linking - переход с внешней ссылки
+    $command = explode(' ', $text)[1];
+    if ($command == '001' || $command == '002') {
+      return [
+//        'text' => "команда: $command",
+          'text' => $snippets['greeting'],
+          'reply_markup' => ['resize_keyboard' => true, 'keyboard' => keyboard(10)]
+      ];
+    }
+  }
   switch ($text) {
     case 'кто я':
       if (is_user($session)) {
